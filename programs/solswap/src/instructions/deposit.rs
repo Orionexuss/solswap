@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token_interface::{Mint, TokenAccount, TokenInterface},
+    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
 use crate::Offer;
@@ -38,7 +38,27 @@ pub struct Deposit<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-pub fn process_deposit(ctx: Context<Deposit>) -> Result<()> {
-    msg!("Greetings from: {:?}", ctx.program_id);
+pub fn process_deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+    *ctx.accounts.offer = Offer {
+        mint_deposit: ctx.accounts.mint_deposit.key(),
+        mint_receive: ctx.accounts.mint_receive.key(),
+        depositor_address: ctx.accounts.signer.key(),
+        vault: ctx.accounts.vault.key(),
+        amount_deposit: 0,
+        status: true,
+    };
+
+    let cpi_acounts = TransferChecked {
+        from: ctx.accounts.signer.to_account_info(),
+        to: ctx.accounts.vault.to_account_info(),
+        authority: ctx.accounts.signer.to_account_info(),
+        mint: ctx.accounts.mint_deposit.to_account_info(),
+    };
+
+    let cpi_program = ctx.accounts.token_program.to_account_info();
+    let cpi_ctx = CpiContext::new(cpi_program, cpi_acounts);
+
+    transfer_checked(cpi_ctx, amount, ctx.accounts.mint_deposit.decimals)?;
+
     Ok(())
 }

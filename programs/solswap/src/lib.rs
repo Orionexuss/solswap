@@ -15,7 +15,7 @@ declare_id!("3KZKcYZ9zrgDkepQRNBAdKcKiAPuYiQTe8cwY9HjDTH2");
 pub mod solswap {
     use super::*;
 
-    pub fn deposit(ctx: Context<Deposit>) -> Result<()> {
-        Ok(())
+    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+        process_deposit(ctx, amount)
     }
 }
