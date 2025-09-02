@@ -9,13 +9,13 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("3KZKcYZ9zrgDkepQRNBAdKcKiAPuYiQTe8cwY9HjDTH2");
+declare_id!("Bw51Xa4JoAiyhE2e8cQAmFNjB5F7pazMWjDxdwKL6Giv");
 
 #[program]
 pub mod solswap {
     use super::*;
 
-    pub fn deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
-        process_deposit(ctx, amount)
+    pub fn create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()> {
+        process_create_offer(ctx, amount)
     }
 }

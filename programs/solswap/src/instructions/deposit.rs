@@ -7,7 +7,7 @@ use anchor_spl::{
 use crate::Offer;
 
 #[derive(Accounts)]
-pub struct Deposit<'info> {
+pub struct CreateOffer<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
@@ -38,7 +38,7 @@ pub struct Deposit<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-pub fn process_deposit(ctx: Context<Deposit>, amount: u64) -> Result<()> {
+pub fn process_create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()> {
     *ctx.accounts.offer = Offer {
         mint_deposit: ctx.accounts.mint_deposit.key(),
         mint_receive: ctx.accounts.mint_receive.key(),
