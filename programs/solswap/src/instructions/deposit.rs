@@ -5,6 +5,7 @@ use anchor_spl::{
 };
 
 use crate::Offer;
+use crate::{error::ErrorCode, Status};
 
 #[derive(Accounts)]
 pub struct CreateOffer<'info> {
@@ -33,23 +34,26 @@ pub struct CreateOffer<'info> {
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
 
+    #[account(
+    mut,
+    associated_token::mint = mint_deposit,
+    associated_token::authority = signer,
+    associated_token::token_program = token_program,
+)]
+    pub user_token_account: InterfaceAccount<'info, TokenAccount>,
+
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
 pub fn process_create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()> {
-    *ctx.accounts.offer = Offer {
-        mint_deposit: ctx.accounts.mint_deposit.key(),
-        mint_receive: ctx.accounts.mint_receive.key(),
-        depositor_address: ctx.accounts.signer.key(),
-        vault: ctx.accounts.vault.key(),
-        amount_deposit: 0,
-        status: true,
-    };
+    if amount == 0 {
+        return Err(ErrorCode::AmountZero.into());
+    }
 
     let cpi_acounts = TransferChecked {
-        from: ctx.accounts.signer.to_account_info(),
+        from: ctx.accounts.user_token_account.to_account_info(),
         to: ctx.accounts.vault.to_account_info(),
         authority: ctx.accounts.signer.to_account_info(),
         mint: ctx.accounts.mint_deposit.to_account_info(),
@@ -59,6 +63,18 @@ pub fn process_create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()
     let cpi_ctx = CpiContext::new(cpi_program, cpi_acounts);
 
     transfer_checked(cpi_ctx, amount, ctx.accounts.mint_deposit.decimals)?;
+
+    *ctx.accounts.offer = Offer {
+        mint_deposit: ctx.accounts.mint_deposit.key(),
+        mint_receive: ctx.accounts.mint_receive.key(),
+        depositor_address: ctx.accounts.signer.key(),
+        vault: ctx.accounts.vault.key(),
+        amount_deposit: amount,
+        bump: ctx.bumps.offer,
+        status: Status::Active,
+    };
+
+    msg!("Offer created: {}", ctx.accounts.offer.key());
 
     Ok(())
 }
