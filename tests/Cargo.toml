@@ -1,0 +1,17 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+litesvm = "0.7.0"
+solana-pubkey = "2.3.0"
+solana-signer = "2.2.0"
+solana-keypair = "2.2.0"
+solana-system-interface = {version = "1.0.0", features = ["bincode"]}
+solana-message = "2.3.0"
+solana-transaction = "2.2.3"
+solana-instruction = "2.3.0"
+spl-token-2022 = "8.0.0"
+spl-associated-token-account = "7.0.0"
+sha2 = "0.11.0-rc.2"
