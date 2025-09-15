@@ -1,12 +1,5 @@
 use anchor_lang::prelude::*;
 
-#[derive(Clone, AnchorSerialize, AnchorDeserialize, PartialEq, Eq, Debug, InitSpace)]
-pub enum Status {
-    Active,
-    Completed,
-    Closed,
-}
-
 #[account]
 #[derive(InitSpace)]
 pub struct Offer {
@@ -16,5 +9,4 @@ pub struct Offer {
     pub depositor_address: Pubkey,
     pub vault: Pubkey,
     pub bump: u8,
-    pub status: Status,
 }
