@@ -4,8 +4,8 @@ use anchor_spl::{
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
+use crate::error::ErrorCode;
 use crate::Offer;
-use crate::{error::ErrorCode, Status};
 
 #[derive(Accounts)]
 pub struct CreateOffer<'info> {
@@ -67,11 +67,10 @@ pub fn process_create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()
     *ctx.accounts.offer = Offer {
         mint_deposit: ctx.accounts.mint_deposit.key(),
         mint_receive: ctx.accounts.mint_receive.key(),
-        depositor_address: ctx.accounts.signer.key(),
+        depositor: ctx.accounts.signer.key(),
         vault: ctx.accounts.vault.key(),
         amount_deposit: amount,
         bump: ctx.bumps.offer,
-        status: Status::Active,
     };
 
     msg!("Offer created: {}", ctx.accounts.offer.key());
