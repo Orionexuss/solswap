@@ -16,4 +16,22 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "cargo test -- --show-output"
+
+[test]
+startup_wait = 5000
+
+[test.validator.mainnet]
+url = "https://api.mainnet-beta.solana.com"
+
+[[test.validator.mainnet.clone]]
+address = "BVvywU1wt4FaLDfZe7y11yrVnHbJpAU7YirmsuW3pump" # Token in
+
+[[test.validator.mainnet.clone]]
+address = "3rSKhRtrjHnSZhRsgoAtrWRVM8rcf8DYv8Quea1epump" # Token out
+
+[test.validator.devnet]
+url = "https://api.devnet.solana.com"
+
+[[test.validator.devnet.clone]]
+address = "EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7"

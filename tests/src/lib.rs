@@ -1,46 +1,59 @@
+pub mod instructions;
+pub use instructions::*;
+
 #[cfg(test)]
 mod tests {
-    use litesvm::LiteSVM;
-    use sha2::{Digest, Sha256};
-    use solana_instruction::{AccountMeta, Instruction};
+    use super::*;
+    use solana_client::rpc_client::RpcClient;
     use solana_keypair::Keypair;
-    use solana_message::Message;
-    use solana_pubkey::{pubkey, Pubkey};
-    use solana_signer::Signer;
-    use solana_system_interface::program::id as system_program_id;
-    use solana_transaction::Transaction;
-    use spl_associated_token_account::{
-        instruction::create_associated_token_account,
-        solana_program::{native_token::LAMPORTS_PER_SOL, program_pack::Pack},
+    use solana_pubkey::pubkey;
+    use solana_sdk::{
+        commitment_config::CommitmentConfig, native_token::LAMPORTS_PER_SOL, program_pack::Pack,
     };
+    use solana_signer::Signer;
+    use solana_system_interface::instruction::create_account;
+    use spl_associated_token_account::instruction::create_associated_token_account;
     use spl_token_2022::{
         instruction::{initialize_mint2, mint_to_checked},
         state::Mint,
     };
 
+    fn airdrop_and_confirm(rpc_client: &RpcClient, pubkey: &solana_pubkey::Pubkey, lamports: u64) {
+        let signature = rpc_client.request_airdrop(pubkey, lamports).unwrap();
+        rpc_client
+            .poll_for_signature_with_commitment(&signature, CommitmentConfig::confirmed())
+            .unwrap();
+    }
+
     #[test]
     fn integration_test() {
-        let mut svm = LiteSVM::new();
+        // Point RPC client at the local test validator
+        let rpc_client = RpcClient::new_with_commitment(
+            "http://127.0.0.1:8899".to_string(),
+            CommitmentConfig::confirmed(),
+        );
 
         let program_id = pubkey!("Bw51Xa4JoAiyhE2e8cQAmFNjB5F7pazMWjDxdwKL6Giv");
-        let bytes = include_bytes!("../fixtures/solswap.so");
-        let _ = svm.add_program(program_id, bytes);
 
-        let create_offer_ix_discriminator: [u8; 8] = Sha256::digest(b"global:create_offer")[..8]
-            .try_into()
-            .unwrap();
+        // Deploy the program to the test validator
+        let program_keypair = Keypair::new();
+        airdrop_and_confirm(&rpc_client, &program_keypair.pubkey(), LAMPORTS_PER_SOL);
 
         // Create depositor and fund account with 5 SOLs
         let depositor_keypair = Keypair::new();
         let depositor_pubkey = depositor_keypair.pubkey();
-        let _ = svm.airdrop(&depositor_pubkey, LAMPORTS_PER_SOL * 5);
+        airdrop_and_confirm(&rpc_client, &depositor_pubkey, 5 * LAMPORTS_PER_SOL);
 
-        let mint_rent = svm.minimum_balance_for_rent_exemption(Mint::LEN);
+        let mint_rent = rpc_client
+            .get_minimum_balance_for_rent_exemption(Mint::LEN)
+            .unwrap();
+
+        println!("Depositor Pubkey: {}", depositor_pubkey);
 
         // Create mint for deposit token
         let mint_deposit = Keypair::new();
 
-        let create_mint_deposit_ix = solana_system_interface::instruction::create_account(
+        let create_mint_deposit_ix = create_account(
             &depositor_pubkey,
             &mint_deposit.pubkey(),
             mint_rent,
@@ -60,7 +73,7 @@ mod tests {
         // Create mint for receive token
         let mint_receive = Keypair::new();
 
-        let create_mint_create_ix = solana_system_interface::instruction::create_account(
+        let create_mint_create_ix = create_account(
             &depositor_pubkey,
             &mint_receive.pubkey(),
             mint_rent,
@@ -103,44 +116,18 @@ mod tests {
         )
         .unwrap();
 
-        // Create offer account PDA
-        let (offer_pda, _offer_bump) = Pubkey::find_program_address(
-            &[mint_deposit.pubkey().as_ref(), depositor_pubkey.as_ref()],
+        let create_offer_ix = create_offer_ix(
+            &mint_deposit.pubkey(),
+            &mint_receive.pubkey(),
+            &depositor_pubkey,
             &program_id,
+            &user_associated_token_account,
+            100 * 10_u64.pow(6),
         );
 
-        // Create vault ATA
-        let vault_account =
-            spl_associated_token_account::get_associated_token_address_with_program_id(
-                &offer_pda,
-                &mint_deposit.pubkey(),
-                &spl_token_2022::id(),
-            );
+        let latest_blockhash = rpc_client.get_latest_blockhash().unwrap();
 
-        let accounts = vec![
-            AccountMeta::new(depositor_pubkey, true), // Signer
-            AccountMeta::new_readonly(mint_deposit.pubkey(), false), // Mint deposit
-            AccountMeta::new_readonly(mint_receive.pubkey(), false), // Mint receive
-            AccountMeta::new(offer_pda, false),       // Offer account
-            AccountMeta::new(vault_account, false),   // Vault account
-            AccountMeta::new(user_associated_token_account, false), // User token account
-            AccountMeta::new_readonly(system_program_id(), false), // System program
-            AccountMeta::new_readonly(spl_token_2022::id(), false), // Token program
-            AccountMeta::new_readonly(spl_associated_token_account::id(), false), // Associated token program
-        ];
-        let amount_to_offer: u64 = 100 * 10_u64.pow(6);
-
-        let create_offer_ix = Instruction::new_with_borsh(
-            program_id,
-            &(create_offer_ix_discriminator, amount_to_offer),
-            accounts,
-        );
-
-        let latest_blockhash = svm.latest_blockhash();
-
-        println!("Latest blockhash: {:?}", latest_blockhash);
-
-        let msg = Message::new_with_blockhash(
+        let setup_tx = solana_sdk::transaction::Transaction::new_signed_with_payer(
             &[
                 create_mint_deposit_ix,
                 init_mint_deposit_ix,
@@ -151,17 +138,38 @@ mod tests {
                 create_offer_ix,
             ],
             Some(&depositor_pubkey),
-            &latest_blockhash,
-        );
-
-        let tx = Transaction::new(
             &[&depositor_keypair, &mint_receive, &mint_deposit],
-            msg,
             latest_blockhash,
         );
 
-        let meta = svm.send_transaction(tx).unwrap();
+        println!("Simulating transaction before sending...");
+        match rpc_client.simulate_transaction(&setup_tx) {
+            Ok(sim) => {
+                if let Some(logs) = sim.value.logs {
+                    println!("Simulation logs:");
+                    for log in logs {
+                        println!("{}", log);
+                    }
+                } else {
+                    println!("No logs found in simulation");
+                }
+                if let Some(err) = sim.value.err {
+                    println!("Simulation error: {:?}", err);
+                }
+            }
+            Err(e) => println!("simulate_transaction failed: {:?}", e),
+        }
+        let setup_result = rpc_client.send_and_confirm_transaction(&setup_tx);
 
-        println!("{:#?}", meta.logs)
+        match setup_result {
+            Ok(signature) => {
+                println!("Setup transaction succeeded: {}", signature);
+                // Aquí puedes seguir con get_signature_status o cualquier otra verificación
+            }
+            Err(e) => {
+                println!("Setup transaction failed: {:#?}", e);
+                panic!("Setup transaction failed");
+            }
+        }
     }
 }
