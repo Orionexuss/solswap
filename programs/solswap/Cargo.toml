@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "solswap"
 
 [features]
-default = []
+default = ["idl-build"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -20,4 +20,4 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 [dependencies]
 anchor-lang = {version = "0.31.1", features = ["init-if-needed"]}
 anchor-spl = "0.31.1"
-switchboard-on-demand = "0.8.0"
+solana-transaction-status-client-types = "2.3.12"

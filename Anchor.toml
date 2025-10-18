@@ -5,33 +5,25 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-solswap = "Bw51Xa4JoAiyhE2e8cQAmFNjB5F7pazMWjDxdwKL6Giv"
+[programs.devnet]
+solswap = "3c9wj6bDT9opsUWPAPdGjdddv1GKF8R7yDpR9ZH7VpvX"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+cluster = "devnet"
+wallet = "~/.config/solana/phantom.json"
 
 [scripts]
-test = "cargo test -- --show-output"
+test = "npx ts-mocha tests/integration.ts --timeout 120000"
 
 [test]
-startup_wait = 5000
+startup_wait = 3000
+shutdown_wait = 2000
+upgradeable = false
 
-[test.validator.mainnet]
-url = "https://api.mainnet-beta.solana.com"
-
-[[test.validator.mainnet.clone]]
-address = "BVvywU1wt4FaLDfZe7y11yrVnHbJpAU7YirmsuW3pump" # Token in
-
-[[test.validator.mainnet.clone]]
-address = "3rSKhRtrjHnSZhRsgoAtrWRVM8rcf8DYv8Quea1epump" # Token out
-
-[test.validator.devnet]
-url = "https://api.devnet.solana.com"
-
-[[test.validator.devnet.clone]]
-address = "EYiAmGSdsQTuCw413V5BzaruWuCCSDgTPtBGvLkXHbe7"
+[test.validator]
+bind_address = "127.0.0.1"
+ledger = ".anchor/test-ledger"
+rpc_port = 8899
