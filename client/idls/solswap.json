@@ -1,5 +1,5 @@
 {
-  "address": "Bw51Xa4JoAiyhE2e8cQAmFNjB5F7pazMWjDxdwKL6Giv",
+  "address": "3c9wj6bDT9opsUWPAPdGjdddv1GKF8R7yDpR9ZH7VpvX",
   "metadata": {
     "name": "solswap",
     "version": "0.1.0",
@@ -26,10 +26,13 @@
           "signer": true
         },
         {
-          "name": "mint_deposit"
+          "name": "config"
         },
         {
-          "name": "mint_receive"
+          "name": "token_mint_in"
+        },
+        {
+          "name": "token_mint_out"
         },
         {
           "name": "offer",
@@ -38,7 +41,7 @@
             "seeds": [
               {
                 "kind": "account",
-                "path": "mint_deposit"
+                "path": "token_mint_in"
               },
               {
                 "kind": "account",
@@ -62,7 +65,7 @@
               },
               {
                 "kind": "account",
-                "path": "mint_deposit"
+                "path": "token_mint_in"
               }
             ],
             "program": {
@@ -119,7 +122,7 @@
               },
               {
                 "kind": "account",
-                "path": "mint_deposit"
+                "path": "token_mint_in"
               }
             ],
             "program": {
@@ -179,9 +182,365 @@
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "init_config",
+      "discriminator": [
+        23,
+        235,
+        115,
+        232,
+        168,
+        96,
+        1,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "usdc_mint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "take_offer",
+      "discriminator": [
+        128,
+        156,
+        242,
+        207,
+        237,
+        192,
+        103,
+        240
+      ],
+      "accounts": [
+        {
+          "name": "taker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "depositor",
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "token_mint_in",
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "token_mint_out",
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "taker_deposit_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "taker"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_in"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "taker_receive_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "taker"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_out"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "depositor_receive_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "depositor"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_out"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "token_mint_in"
+              },
+              {
+                "kind": "account",
+                "path": "depositor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_in"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
     }
   ],
   "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
     {
       "name": "Offer",
       "discriminator": [
@@ -199,22 +558,49 @@
   "errors": [
     {
       "code": 6000,
-      "name": "CustomError",
-      "msg": "Custom error message"
+      "name": "AmountZero",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidTokenIn",
+      "msg": "Token account mint does not match expected mint"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidTokenOut",
+      "msg": "Token account mint does not match expected mint"
+    },
+    {
+      "code": 6003,
+      "name": "SameToken",
+      "msg": "Token in and token out cannot be the same"
     }
   ],
   "types": [
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "usdc_mint",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
     {
       "name": "Offer",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "mint_deposit",
+            "name": "token_mint_in",
             "type": "pubkey"
           },
           {
-            "name": "mint_receive",
+            "name": "token_mint_out",
             "type": "pubkey"
           },
           {
@@ -222,7 +608,7 @@
             "type": "u64"
           },
           {
-            "name": "depositor_address",
+            "name": "depositor",
             "type": "pubkey"
           },
           {
@@ -230,8 +616,8 @@
             "type": "pubkey"
           },
           {
-            "name": "status",
-            "type": "bool"
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
