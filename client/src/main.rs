@@ -123,5 +123,64 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    let taker_wallet_path = std::path::Path::new("fixtures/taker_wallet.json");
+    let taker = Rc::new(Keypair::read_from_file(taker_wallet_path)?);
+
+    let price_feed_account = Pubkey::from_str_const("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
+
+    let taker_token_in_ata = get_associated_token_address_with_program_id(
+        &taker.pubkey(),
+        &token_mint_in,
+        &token_program_id,
+    );
+
+    let taker_token_out_ata = get_associated_token_address_with_program_id(
+        &taker.pubkey(),
+        &token_mint_out,
+        &token_program_id,
+    );
+
+    let depositor_receive_ata = get_associated_token_address_with_program_id(
+        &depositor.pubkey(),
+        &token_mint_out,
+        &token_program_id,
+    );
+
+    let take_offer_sig = program
+        .request()
+        .accounts(accounts::TakeOffer {
+            taker: taker.pubkey(),
+            depositor: depositor.pubkey(),
+            token_mint_in,
+            token_mint_out,
+            taker_token_in_ata,
+            taker_token_out_ata,
+            depositor_receive_ata,
+            offer: offer_pda,
+            vault: vault_pda,
+            price_update: price_feed_account,
+            associated_token_program: spl_associated_token_account::id(),
+            system_program: Pubkey::new_from_array(solana_system_interface::program::ID.to_bytes()),
+            token_program: token_program_id,
+        })
+        .args(args::TakeOffer {})
+        .signer(&taker)
+        .payer(Rc::clone(&taker))
+        .send();
+
+    match take_offer_sig {
+        Ok(sig) => {
+            println!("Offer taken with signature: {:?}", sig);
+        }
+        Err(e) => {
+            let raw = format!("{e}");
+            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&raw) {
+                println!("{}", serde_json::to_string_pretty(&val).unwrap());
+            } else {
+                println!("{raw}");
+            }
+        }
+    }
+
     Ok(())
 }
