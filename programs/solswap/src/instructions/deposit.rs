@@ -12,6 +12,10 @@ pub struct CreateOffer<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
 
+    #[account(
+        seeds = [b"config"],
+        bump
+    )]
     pub config: Account<'info, Config>,
     pub token_mint_in: InterfaceAccount<'info, Mint>,
     pub token_mint_out: InterfaceAccount<'info, Mint>,
@@ -93,7 +97,7 @@ pub fn process_create_offer(ctx: Context<CreateOffer>, amount: u64) -> Result<()
         token_mint_out: ctx.accounts.token_mint_out.key(),
         depositor: ctx.accounts.signer.key(),
         vault: ctx.accounts.vault.key(),
-        amount_deposit: amount,
+        deposited_amount: amount,
         bump: ctx.bumps.offer,
     };
 

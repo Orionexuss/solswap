@@ -6,3 +6,4 @@ node_modules
 test-ledger
 .yarn
 depositor_wallet.json
+taker_wallet.json
