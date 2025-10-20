@@ -5,21 +5,21 @@ A Solana program for trustless token swaps built with Anchor framework.
 ## Features
 
 - **Create offers**: Deposit tokens into a vault and specify what you want in return
-- **Take offers**: Pay the counter token and receive the escrowed tokens
+- **Take offers**: Send the counter token to the depositor and receive the escrowed tokens
 - **Price-aware**: Uses Pyth price feeds for SOL/USDC conversions
 - **Supported tokens**: WSOL and USDC only
 
 ## Program Details
 
 - **Program ID**: `3c9wj6bDT9opsUWPAPdGjdddv1GKF8R7yDpR9ZH7VpvX`
-- **Token Program**: SPL Token 2022
-- **Supported mints**: WSOL, USDC (configurable)
+- **Token Program**: SPL Token (supports both v1 and v2 via interface)
+- **Supported mints**: WSOL, USDC
 
 ## Instructions
 
 1. **`init_config(usdc_mint)`** - Set the USDC mint address
 2. **`create_offer(amount)`** - Deposit tokens and create an offer
-3. **`take_offer()`** - Take an existing offer using Pyth price data
+3. **`take_offer()`** - Take an existing offer using Pyth price data (requires price feed account: `7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE`)
 
 ## Quick Start
 
