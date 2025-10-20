@@ -1,25 +1,30 @@
 # SolSwap
 
-A Solana program for token swaps built with Anchor framework. Currently in development with basic offer creation functionality.
+A Solana program for trustless token swaps built with Anchor framework.
 
-## Current Status
+## Features
 
-**⚠️ Work in Progress** 
+- **Create offers**: Deposit tokens into a vault and specify what you want in return
+- **Take offers**: Pay the counter token and receive the escrowed tokens
+- **Price-aware**: Uses Pyth price feeds for SOL/USDC conversions
+- **Supported tokens**: WSOL and USDC only
 
-### What's Implemented
-- `create_offer` - Creates a token swap offer by depositing tokens into a vault
+## Program Details
 
-### What's Missing
-- Accept offer functionality
-- Complete swap execution
-- Offer cancellation
+- **Program ID**: `3c9wj6bDT9opsUWPAPdGjdddv1GKF8R7yDpR9ZH7VpvX`
+- **Token Program**: SPL Token 2022
+- **Supported mints**: WSOL, USDC (configurable)
+
+## Instructions
+
+1. **`init_config(usdc_mint)`** - Set the USDC mint address
+2. **`create_offer(amount)`** - Deposit tokens and create an offer
+3. **`take_offer()`** - Take an existing offer using Pyth price data
 
 ## Quick Start
 
 ### Prerequisites
-- Rust
-- Solana CLI
-- Anchor framework
+- Rust, Solana CLI, Anchor framework
 
 ### Build & Deploy
 ```bash
@@ -28,17 +33,37 @@ anchor deploy
 ```
 
 ### Run Client Example
+
+**Setup required:**
+1. Build the program first:
+```bash
+anchor build
+```
+
+2. Copy the generated IDL to the client:
+```bash
+cp target/idl/solswap.json client/idls/
+```
+
+3. Ensure fixture keypairs exist and are funded:
+   - `client/fixtures/depositor_wallet.json` - must have WSOL balance
+   - `client/fixtures/taker_wallet.json` - must have USDC balance
+
+4. Run the client:
 ```bash
 cd client
 cargo run
 ```
 
-## Program Details
+## Architecture
 
-- **Program ID**: `5A5o1Qd1qTF4P7PprZPRU2GvJYr7kfWHfy6tRSBPYgKr`
-- **Current Instruction**: `create_offer(amount: u64)`
-- **Uses**: SPL Token 2022, PDAs, Associated Token Accounts
+- **Config PDA**: `["config"]` - stores USDC mint
+- **Offer PDA**: `[token_mint_in, depositor]` - represents an active offer
+- **Vault ATA**: owned by Offer PDA, holds escrowed tokens
 
-## Development
+## Security
 
-This is an early-stage project. The current implementation demonstrates offer creation with token deposits, but the full swap functionality is still being developed.
+- Only WSOL and USDC allowed
+- Vault authority is the Offer PDA
+- Offers are closed after being taken
+- Pyth price validation required
