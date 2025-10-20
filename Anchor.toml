@@ -13,7 +13,7 @@ url = "https://api.apr.dev"
 
 [provider]
 cluster = "devnet"
-wallet = "~/.config/solana/phantom.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "npx ts-mocha tests/integration.ts --timeout 120000"

@@ -12,15 +12,20 @@ use anchor_client::{
 use anchor_lang::prelude::*;
 use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token::id;
+mod utils;
+use crate::utils::print_balances;
 
 declare_program!(solswap);
 
 use solswap::{client::accounts, client::args};
 
 fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
-    // Load depositor's keypair from file
+    // Load depositor
     let depositor_wallet_path = std::path::Path::new("fixtures/depositor_wallet.json");
     let depositor = Rc::new(Keypair::read_from_file(depositor_wallet_path)?);
+
+    let taker_wallet_path = std::path::Path::new("fixtures/taker_wallet.json");
+    let taker = Rc::new(Keypair::read_from_file(taker_wallet_path)?);
 
     // Constants for token mints (Devnet USDC and WSOL)
     const USDC_PUBKEY: Pubkey = pubkey!("Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr");
@@ -56,7 +61,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         .send();
 
     match init_config_sig {
-        Ok(sig) => println!("Config initialized with signature: {:?}", sig),
+        Ok(sig) => println!("\nConfig initialized with signature: {:?}", sig),
         Err(e) => {
             let raw = format!("{e}");
             if let Ok(val) = serde_json::from_str::<serde_json::Value>(&raw) {
@@ -74,17 +79,24 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     );
 
     // Derive vault PDA (associated token account for offer PDA)
-    let vault_pda = spl_associated_token_account::get_associated_token_address_with_program_id(
-        &offer_pda,
-        &token_mint_in,
-        &token_program_id,
-    );
+    let vault_pda =
+        get_associated_token_address_with_program_id(&offer_pda, &token_mint_in, &token_program_id);
 
     // Find depositor's associated token account for input token
     let user_token_account = get_associated_token_address_with_program_id(
         &depositor.pubkey(),
         &token_mint_in,
         &token_program_id,
+    );
+
+    // Print balances before offer creation
+    print_balances(
+        &depositor.pubkey(),
+        Some(&taker.pubkey()),
+        &token_mint_in,
+        &token_mint_out,
+        &token_program_id,
+        "Balances Before Offer Creation",
     );
 
     // Create offer instruction
@@ -103,7 +115,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
             associated_token_program: spl_associated_token_account::id(),
         })
         .args(args::CreateOffer {
-            amount: (LAMPORTS_PER_SOL as f64 * 0.07) as u64, // Offer 0.07 SOL
+            amount: (LAMPORTS_PER_SOL as f64 * 0.05) as u64, // Offer 0.05 SOL
         })
         .signer(&depositor)
         .send();
@@ -111,7 +123,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     // Print result or error in readable form
     match create_offer_sig {
         Ok(sig) => {
-            println!("Offer created with signature: {:?}", sig);
+            println!("\nOffer created with signature: {:?}", sig);
         }
         Err(e) => {
             let raw = format!("{e}");
@@ -123,10 +135,8 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let taker_wallet_path = std::path::Path::new("fixtures/taker_wallet.json");
-    let taker = Rc::new(Keypair::read_from_file(taker_wallet_path)?);
-
-    let price_feed_account = Pubkey::from_str_const("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
+    const PRICE_FEED_ACCOUNT: Pubkey =
+        Pubkey::from_str_const("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
 
     let taker_token_in_ata = get_associated_token_address_with_program_id(
         &taker.pubkey(),
@@ -146,6 +156,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         &token_program_id,
     );
 
+    // Take offer instruction
     let take_offer_sig = program
         .request()
         .accounts(accounts::TakeOffer {
@@ -158,7 +169,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
             depositor_receive_ata,
             offer: offer_pda,
             vault: vault_pda,
-            price_update: price_feed_account,
+            price_update: PRICE_FEED_ACCOUNT,
             associated_token_program: spl_associated_token_account::id(),
             system_program: Pubkey::new_from_array(solana_system_interface::program::ID.to_bytes()),
             token_program: token_program_id,
@@ -170,7 +181,16 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
     match take_offer_sig {
         Ok(sig) => {
-            println!("Offer taken with signature: {:?}", sig);
+            // Print balances after offer taken
+            print_balances(
+                &depositor.pubkey(),
+                Some(&taker.pubkey()),
+                &token_mint_in,
+                &token_mint_out,
+                &token_program_id,
+                "Balances After Taking Offer",
+            );
+            println!("\nOffer taken with signature: {:?}", sig);
         }
         Err(e) => {
             let raw = format!("{e}");
