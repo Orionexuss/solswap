@@ -1,53 +1,44 @@
 {
-  "address": "3c9wj6bDT9opsUWPAPdGjdddv1GKF8R7yDpR9ZH7VpvX",
+  "address": "4RGdWYYuAVYWUH23MQxZomSRUYpstb5zTVbrSGocHYBn",
   "metadata": {
     "name": "solswap",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
+  "docs": [
+    "Oracle-priced escrow swaps between WSOL and USDC.",
+    "",
+    "A depositor escrows one asset in a PDA-owned vault. Any taker can fill the whole offer by",
+    "paying the other asset at the current Chainlink SOL / USD price."
+  ],
   "instructions": [
     {
-      "name": "create_offer",
+      "name": "cancel_offer",
       "discriminator": [
-        237,
-        233,
-        192,
-        168,
-        248,
-        7,
-        249,
-        241
+        92,
+        203,
+        223,
+        40,
+        92,
+        89,
+        53,
+        119
       ],
       "accounts": [
         {
-          "name": "signer",
+          "name": "depositor",
           "writable": true,
-          "signer": true
+          "signer": true,
+          "relations": [
+            "offer"
+          ]
         },
         {
-          "name": "config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "token_mint_in"
-        },
-        {
-          "name": "token_mint_out"
+          "name": "token_mint_in",
+          "relations": [
+            "offer"
+          ]
         },
         {
           "name": "offer",
@@ -55,12 +46,23 @@
           "pda": {
             "seeds": [
               {
-                "kind": "account",
-                "path": "token_mint_in"
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
               },
               {
                 "kind": "account",
-                "path": "signer"
+                "path": "depositor"
+              },
+              {
+                "kind": "account",
+                "path": "offer.id",
+                "account": "Offer"
               }
             ]
           }
@@ -123,13 +125,217 @@
           }
         },
         {
-          "name": "user_token_account",
+          "name": "depositor_token_account",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "account",
-                "path": "signer"
+                "path": "depositor"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_in"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_offer",
+      "discriminator": [
+        237,
+        233,
+        192,
+        168,
+        248,
+        7,
+        249,
+        241
+      ],
+      "accounts": [
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_mint_in"
+        },
+        {
+          "name": "token_mint_out"
+        },
+        {
+          "name": "offer",
+          "docs": [
+            "`init` (not `init_if_needed`): an existing offer can never be overwritten."
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "depositor"
+              },
+              {
+                "kind": "arg",
+                "path": "offer_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "token_mint_in"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "depositor"
               },
               {
                 "kind": "account",
@@ -193,6 +399,10 @@
       ],
       "args": [
         {
+          "name": "offer_id",
+          "type": "u64"
+        },
+        {
           "name": "amount",
           "type": "u64"
         }
@@ -212,7 +422,7 @@
       ],
       "accounts": [
         {
-          "name": "payer",
+          "name": "admin",
           "writable": true,
           "signer": true
         },
@@ -224,6 +434,11 @@
               {
                 "kind": "const",
                 "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
                   99,
                   111,
                   110,
@@ -236,6 +451,16 @@
           }
         },
         {
+          "name": "program",
+          "docs": [
+            "Only the upgrade authority may create the config, so nobody can front-run deployment."
+          ],
+          "address": "4RGdWYYuAVYWUH23MQxZomSRUYpstb5zTVbrSGocHYBn"
+        },
+        {
+          "name": "program_data"
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
@@ -244,6 +469,14 @@
         {
           "name": "usdc_mint",
           "type": "pubkey"
+        },
+        {
+          "name": "price_feed",
+          "type": "pubkey"
+        },
+        {
+          "name": "max_price_age_secs",
+          "type": "u32"
         }
       ]
     },
@@ -267,9 +500,36 @@
         },
         {
           "name": "depositor",
+          "docs": [
+            "Receives the payment and, when the offer closes, its rent."
+          ],
+          "writable": true,
           "relations": [
             "offer"
           ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "token_mint_in",
@@ -460,12 +720,23 @@
           "pda": {
             "seeds": [
               {
-                "kind": "account",
-                "path": "token_mint_in"
+                "kind": "const",
+                "value": [
+                  111,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
               },
               {
                 "kind": "account",
                 "path": "depositor"
+              },
+              {
+                "kind": "account",
+                "path": "offer.id",
+                "account": "Offer"
               }
             ]
           }
@@ -528,7 +799,10 @@
           }
         },
         {
-          "name": "price_update"
+          "name": "price_feed",
+          "docs": [
+            "`chainlink_solana::v2::read_feed_v2`."
+          ]
         },
         {
           "name": "associated_token_program",
@@ -542,7 +816,68 @@
           "name": "token_program"
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "max_amount_out",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_config",
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  119,
+                  97,
+                  112,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "price_feed",
+          "type": "pubkey"
+        },
+        {
+          "name": "max_price_age_secs",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -571,18 +906,46 @@
         73,
         229
       ]
+    }
+  ],
+  "events": [
+    {
+      "name": "OfferCancelled",
+      "discriminator": [
+        45,
+        42,
+        175,
+        214,
+        51,
+        192,
+        154,
+        9
+      ]
     },
     {
-      "name": "PriceUpdateV2",
+      "name": "OfferCreated",
       "discriminator": [
-        34,
-        241,
-        35,
-        99,
+        31,
+        236,
+        215,
+        144,
+        75,
+        45,
         157,
-        126,
-        244,
-        205
+        87
+      ]
+    },
+    {
+      "name": "OfferTaken",
+      "discriminator": [
+        97,
+        101,
+        174,
+        50,
+        76,
+        209,
+        178,
+        148
       ]
     }
   ],
@@ -595,17 +958,52 @@
     {
       "code": 6001,
       "name": "InvalidTokenIn",
-      "msg": "Token account mint does not match expected mint"
+      "msg": "Token in must be WSOL or the configured USDC mint"
     },
     {
       "code": 6002,
       "name": "InvalidTokenOut",
-      "msg": "Token account mint does not match expected mint"
+      "msg": "Token out must be WSOL or the configured USDC mint"
     },
     {
       "code": 6003,
       "name": "SameToken",
       "msg": "Token in and token out cannot be the same"
+    },
+    {
+      "code": 6004,
+      "name": "Unauthorized",
+      "msg": "Only the program upgrade authority can initialize the config"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidPriceFeed",
+      "msg": "Price feed account does not match the configured Chainlink feed"
+    },
+    {
+      "code": 6006,
+      "name": "StalePrice",
+      "msg": "Oracle price is older than the allowed maximum age"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidPrice",
+      "msg": "Oracle price must be positive"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidMaxPriceAge",
+      "msg": "Maximum price age must be between 1 and 3600 seconds"
+    },
+    {
+      "code": 6009,
+      "name": "SlippageExceeded",
+      "msg": "Required payment exceeds the taker's maximum"
+    },
+    {
+      "code": 6010,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
     }
   ],
   "types": [
@@ -615,8 +1013,36 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "usdc_mint",
+            "name": "admin",
+            "docs": [
+              "Can update the config. Set to the program upgrade authority at initialization."
+            ],
             "type": "pubkey"
+          },
+          {
+            "name": "usdc_mint",
+            "docs": [
+              "The only non-WSOL mint offers may use."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "price_feed",
+            "docs": [
+              "Chainlink SOL / USD data feed account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "max_price_age_secs",
+            "docs": [
+              "Oracle rounds older than this are rejected by `take_offer`."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -627,15 +1053,10 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "token_mint_in",
-            "type": "pubkey"
-          },
-          {
-            "name": "token_mint_out",
-            "type": "pubkey"
-          },
-          {
-            "name": "deposited_amount",
+            "name": "id",
+            "docs": [
+              "Client-chosen id; lets one depositor keep several offers open at once."
+            ],
             "type": "u64"
           },
           {
@@ -643,8 +1064,26 @@
             "type": "pubkey"
           },
           {
-            "name": "vault",
+            "name": "token_mint_in",
+            "docs": [
+              "Mint escrowed in the vault (what the taker receives)."
+            ],
             "type": "pubkey"
+          },
+          {
+            "name": "token_mint_out",
+            "docs": [
+              "Mint the depositor wants back (what the taker pays)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "deposited_amount",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
           },
           {
             "name": "bump",
@@ -654,142 +1093,94 @@
       }
     },
     {
-      "name": "PriceFeedMessage",
-      "repr": {
-        "kind": "c"
-      },
+      "name": "OfferCancelled",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "feed_id",
-            "docs": [
-              "`FeedId` but avoid the type alias because of compatibility issues with Anchor's `idl-build` feature."
-            ],
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
-          },
-          {
-            "name": "price",
-            "type": "i64"
-          },
-          {
-            "name": "conf",
-            "type": "u64"
-          },
-          {
-            "name": "exponent",
-            "type": "i32"
-          },
-          {
-            "name": "publish_time",
-            "docs": [
-              "The timestamp of this price update in seconds"
-            ],
-            "type": "i64"
-          },
-          {
-            "name": "prev_publish_time",
-            "docs": [
-              "The timestamp of the previous price update. This field is intended to allow users to",
-              "identify the single unique price update for any moment in time:",
-              "for any time t, the unique update is the one such that prev_publish_time < t <= publish_time.",
-              "",
-              "Note that there may not be such an update while we are migrating to the new message-sending logic,",
-              "as some price updates on pythnet may not be sent to other chains (because the message-sending",
-              "logic may not have triggered). We can solve this problem by making the message-sending mandatory",
-              "(which we can do once publishers have migrated over).",
-              "",
-              "Additionally, this field may be equal to publish_time if the message is sent on a slot where",
-              "where the aggregation was unsuccesful. This problem will go away once all publishers have",
-              "migrated over to a recent version of pyth-agent."
-            ],
-            "type": "i64"
-          },
-          {
-            "name": "ema_price",
-            "type": "i64"
-          },
-          {
-            "name": "ema_conf",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "PriceUpdateV2",
-      "docs": [
-        "A price update account. This account is used by the Pyth Receiver program to store a verified price update from a Pyth price feed.",
-        "It contains:",
-        "- `write_authority`: The write authority for this account. This authority can close this account to reclaim rent or update the account to contain a different price update.",
-        "- `verification_level`: The [`VerificationLevel`] of this price update. This represents how many Wormhole guardian signatures have been verified for this price update.",
-        "- `price_message`: The actual price update.",
-        "- `posted_slot`: The slot at which this price update was posted."
-      ],
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "write_authority",
+            "name": "offer",
             "type": "pubkey"
           },
           {
-            "name": "verification_level",
-            "type": {
-              "defined": {
-                "name": "VerificationLevel"
-              }
-            }
+            "name": "depositor",
+            "type": "pubkey"
           },
           {
-            "name": "price_message",
-            "type": {
-              "defined": {
-                "name": "PriceFeedMessage"
-              }
-            }
-          },
-          {
-            "name": "posted_slot",
+            "name": "amount_returned",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "VerificationLevel",
-      "docs": [
-        "Pyth price updates are bridged to all blockchains via Wormhole.",
-        "Using the price updates on another chain requires verifying the signatures of the Wormhole guardians.",
-        "The usual process is to check the signatures for two thirds of the total number of guardians, but this can be cumbersome on Solana because of the transaction size limits,",
-        "so we also allow for partial verification.",
-        "",
-        "This enum represents how much a price update has been verified:",
-        "- If `Full`, we have verified the signatures for two thirds of the current guardians.",
-        "- If `Partial`, only `num_signatures` guardian signatures have been checked.",
-        "",
-        "# Warning",
-        "Using partially verified price updates is dangerous, as it lowers the threshold of guardians that need to collude to produce a malicious price update."
-      ],
+      "name": "OfferCreated",
       "type": {
-        "kind": "enum",
-        "variants": [
+        "kind": "struct",
+        "fields": [
           {
-            "name": "Partial",
-            "fields": [
-              {
-                "name": "num_signatures",
-                "type": "u8"
-              }
-            ]
+            "name": "offer",
+            "type": "pubkey"
           },
           {
-            "name": "Full"
+            "name": "depositor",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint_in",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_mint_out",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "OfferTaken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "offer",
+            "type": "pubkey"
+          },
+          {
+            "name": "taker",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount_received",
+            "docs": [
+              "Tokens the taker received from the vault."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "amount_paid",
+            "docs": [
+              "Tokens the taker paid to the depositor."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "docs": [
+              "Chainlink answer used for the conversion."
+            ],
+            "type": "i128"
+          },
+          {
+            "name": "price_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "price_timestamp",
+            "type": "u32"
           }
         ]
       }
@@ -797,9 +1188,28 @@
   ],
   "constants": [
     {
-      "name": "FEED_ID",
-      "type": "string",
-      "value": "\"0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d\""
+      "name": "CONFIG_SEED",
+      "docs": [
+        "Seed of the singleton [`crate::Config`] account."
+      ],
+      "type": "bytes",
+      "value": "[115, 119, 97, 112, 95, 99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "DEFAULT_MAX_PRICE_AGE_SECS",
+      "docs": [
+        "Default freshness window for oracle prices, in seconds."
+      ],
+      "type": "u32",
+      "value": "60"
+    },
+    {
+      "name": "OFFER_SEED",
+      "docs": [
+        "Seed prefix of every [`crate::Offer`] account: `[\"offer\", depositor, offer_id_le]`."
+      ],
+      "type": "bytes",
+      "value": "[111, 102, 102, 101, 114]"
     }
   ]
 }

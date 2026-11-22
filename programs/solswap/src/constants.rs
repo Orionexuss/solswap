@@ -1,5 +1,18 @@
 use anchor_lang::prelude::*;
 
+/// Seed of the singleton [`crate::Config`] account.
 #[constant]
-pub const FEED_ID: &str = "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
-pub const MAXIMUM_AGE: u64 = 1000;
+pub const CONFIG_SEED: &[u8] = b"swap_config";
+
+/// Seed prefix of every [`crate::Offer`] account: `["offer", depositor, offer_id_le]`.
+#[constant]
+pub const OFFER_SEED: &[u8] = b"offer";
+
+/// Default freshness window for oracle prices, in seconds.
+#[constant]
+pub const DEFAULT_MAX_PRICE_AGE_SECS: u32 = 60;
+
+/// Upper bound accepted by `init_config` / `update_config`, so a typo cannot disable the check.
+pub const MAX_ALLOWED_PRICE_AGE_SECS: u32 = 3_600;
+
+pub const WSOL_MINT: Pubkey = pubkey!("So11111111111111111111111111111111111111112");
